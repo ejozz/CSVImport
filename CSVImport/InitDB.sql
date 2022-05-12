@@ -19,7 +19,7 @@ END
 		CountryRegion VARCHAR(MAX),
 		PostalCode VARCHAR(MAX),
 		AddressType VARCHAR(MAX),
-		RevisionNumber VARCHAR(MAX),
+		RevisionNumber VARCHAR(5),
 		OrderDate VARCHAR(MAX),
 		DueDate VARCHAR(MAX),
 		ShipDate VARCHAR(MAX),
@@ -52,18 +52,24 @@ GO
 CREATE PROC SalesLT.ProcessImport AS 
 
 INSERT INTO SalesLT.Customer(Title, FirstName, MiddleName, LastName,Suffix, CompanyName,SalesPerson,EmailAddress,Phone, ModifiedDate)
-SELECT DISTINCT Title, FirstName, MiddleName, LastName,Suffix, CompanyName,SalesPerson,EmailAddress,Phone, GETDATE() FROM SalesLT.ImportStaging
-
+SELECT DISTINCT st.Title, st.FirstName, st.MiddleName, st.LastName, st.Suffix, st.CompanyName, st.SalesPerson, st.EmailAddress, st.Phone, GETDATE() 
+FROM SalesLT.ImportStaging st
+LEFT JOIN SalesLT.Customer c ON  st.FirstName = c.FirstName AND st.LastName = c.LastName
+WHERE c.CustomerId IS NULL
 
 INSERT INTO SalesLT.Address(AddressLine1, AddressLine2, City, StateProvince, CountryRegion, PostalCode, ModifiedDate)
-SELECT DISTINCT AddressLine1, AddressLine2, City, StateProvince, CountryRegion, PostalCode, GETDATE() FROM SalesLT.ImportStaging
-
+SELECT DISTINCT st.AddressLine1, st.AddressLine2, st.City, st.StateProvince, st.CountryRegion, st.PostalCode, GETDATE() 
+FROM SalesLT.ImportStaging st
+LEFT JOIN SalesLT.Address c ON  st.AddressLine1 = c.AddressLine1 AND st.PostalCode = c.PostalCode
+WHERE c.AddressID IS NULL
 
 INSERT INTO SalesLT.CustomerAddress
-SELECT DISTINCT CustomerID, AddressID, AddressType, GETDATE() FROM SalesLT.ImportStaging st 
+SELECT DISTINCT c.CustomerID, a.AddressID, st.AddressType, GETDATE() 
+FROM SalesLT.ImportStaging st 
 INNER JOIN SalesLT.Customer c ON st.FirstName = c.FirstName AND st.LastName = c.LastName
 INNER JOIN SalesLT.Address a ON st.AddressLine1 = a.AddressLine1
-
+LEFT JOIN SalesLT.CustomerAddress ca ON ca.CustomerID = c.CustomerID AND ca.AddressID = a.AddressID
+WHERE ca.CustomerID IS NULL
 
 INSERT INTO SalesLT.SalesOrderHeader(
 	RevisionNumber, OrderDate, DueDate, 
