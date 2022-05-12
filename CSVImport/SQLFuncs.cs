@@ -8,7 +8,9 @@ namespace CSVReaderApp
     {
         public static void InitDB(string sqlConnectionString)
         {
-            string script = File.ReadAllText(@"C:\Users\Ejozz\source\repos\CSVImport\CSVImport\InitDB.sql");
+            String CurrentDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+
+            String script = File.ReadAllText(Path.Combine(CurrentDir, @"InitDB.sql"));
 
             SqlConnection conn = new SqlConnection(sqlConnectionString);
 
@@ -19,13 +21,29 @@ namespace CSVReaderApp
 
         public static void ProcessImport(string sqlConnectionString)
         {
-           string script = File.ReadAllText(@"C:\Users\Ejozz\source\repos\CSVImport\CSVImport\ProcessImport.sql");
+            String CurrentDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+
+            String script = File.ReadAllText(Path.Combine(CurrentDir, @"ProcessImport.sql"));
 
             SqlConnection conn = new SqlConnection(sqlConnectionString);
 
             Server server = new Server(new ServerConnection(conn));
 
             server.ConnectionContext.ExecuteNonQuery(script);
+        }
+
+        public static bool ValidateRows(int RowCount, string sqlConnectionString)
+        {
+            String Command = "SELECT COUNT(*) FROM SalesLT.ImportStaging;";
+            using (SqlConnection myConnection = new SqlConnection(sqlConnectionString))
+            {
+                myConnection.Open();
+                using (SqlCommand myCommand = new SqlCommand(Command, myConnection))
+                {
+                    int Result = (int)myCommand.ExecuteScalar();
+                    return RowCount == Result;
+                }
+            } 
         }
     }
 }
