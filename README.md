@@ -1,3 +1,7 @@
+## CSVIMPORT
+
+Project created in visual studio to import given csv file to SQL server.
+
 1. Clone project.
 2. Open in visual studio.
 3. Set up SQL server and restore backup.
